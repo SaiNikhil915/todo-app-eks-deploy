@@ -1,4 +1,4 @@
-const apiUrl = "http://localhost:3000/todos";
+const apiUrl = '/todos';
 
 const form = document.getElementById("todo-form");
 const list = document.getElementById("todo-list");
