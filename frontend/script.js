@@ -1,4 +1,4 @@
-const apiUrl = '/todos';
+const apiUrl = "http://a44bd3b3c04664b7897a5c5ff2fad3c3-1545410270.us-east-1.elb.amazonaws.com/todos";
 
 const form = document.getElementById("todo-form");
 const list = document.getElementById("todo-list");
