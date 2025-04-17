@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: f2p-backend
-          image: IMAGE_URI
+          image: IMAGE_URI  # <-- this will be replaced with the actual image URL
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
@@ -57,4 +57,3 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
-      
