@@ -22,11 +22,13 @@ spec:
     spec:
       containers:
         - name: f2p-backend
-          # This will get replaced by CodeBuild:
-          image: IMAGE_URI  
+          image: 
           imagePullPolicy: Always
-          ports:
+          ports:image: IMAGE_URI
             - containerPort: 3000
+          env:
+            - name: MONGO_URI
+              value: "mongodb://mongo:27017/todoApplication" 
           resources:
             requests:
               cpu: "150m"
