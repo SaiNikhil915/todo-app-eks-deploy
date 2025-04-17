@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Minimalist ToDo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #646cff;
+      --primary-light: #747bff;
+      --bg: #fafafa;
+      --text: #213547;
+      --text-light: #64748b;
+      --border: #e2e8f0;
+      --todo-bg: #ffffff;
+      --shadow: rgba(0, 0, 0, 0.04);
+      --priority-high: #ef4444;
+      --priority-medium: #f59e0b;
+      --priority-low: #10b981;
+      --status-todo: #cbd5e1;
+      --status-progress: #60a5fa;
+      --status-done: #34d399;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --primary: #747bff;
+        --primary-light: #9499ff;
+        --bg: #1a1a1a;
+        --text: #ffffff;
+        --text-light: #94a3b8;
+        --border: #2a2a2a;
+        --todo-bg: #242424;
+        --shadow: rgba(0, 0, 0, 0.2);
+      }
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      transition: all 0.2s ease;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 0;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 2rem 1rem 1rem;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h1 {
+      font-weight: 600;
+      font-size: 1.75rem;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 1rem;
+      width: 100%;
+      flex: 1;
+    }
+
+    .form-container {
+      background: var(--todo-bg);
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px var(--shadow);
+      margin-bottom: 2rem;
+    }
+
+    #todo-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 640px) {
+      #todo-form {
+        grid-template-columns: 0.5fr 1.5fr 1fr 1fr auto;
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      font-size: 0.875rem;
+      margin-bottom: 0.25rem;
+      color: var(--text-light);
+    }
+
+    input, select {
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--todo-bg);
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(100, 108, 255, 0.2);
+    }
+
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    button:hover {
+      background: var(--primary-light);
+    }
+
+    .todo-grid {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .todo-item {
+      background: var(--todo-bg);
+      padding: 1.25rem;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-left: 4px solid var(--priority-medium);
+      box-shadow: 0 2px 12px var(--shadow);
+    }
+
+    .todo-item[data-priority="HIGH"] {
+      border-left-color: var(--priority-high);
+    }
+
+    .todo-item[data-priority="MEDIUM"] {
+      border-left-color: var(--priority-medium);
+    }
+
+    .todo-item[data-priority="LOW"] {
+      border-left-color: var(--priority-low);
+    }
+
+    .todo-content {
+      flex: 1;
+    }
+
+    .todo-title {
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+      font-size: 1.1rem;
+    }
+
+    .todo-meta {
+      display: flex;
+      gap: 0.75rem;
+      font-size: 0.875rem;
+      color: var(--text-light);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .priority {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--priority-high);
+    }
+
+    .priority.HIGH {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--priority-high);
+    }
+
+    .priority.MEDIUM {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--priority-medium);
+    }
+
+    .priority.LOW {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--priority-low);
+    }
+
+    .status {
+      background: rgba(203, 213, 225, 0.2);
+      color: var(--text-light);
+    }
+
+    .status.TODO {
+      background: rgba(203, 213, 225, 0.2);
+      color: var(--text-light);
+    }
+
+    .status.PROGRESS {
+      background: rgba(96, 165, 250, 0.1);
+      color: var(--status-progress);
+    }
+
+    .status.DONE {
+      background: rgba(52, 211, 153, 0.1);
+      color: var(--status-done);
+    }
+
+    .todo-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .action-btn {
+      background: transparent;
+      color: var(--text-light);
+      padding: 0.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .action-btn:hover {
+      background: var(--border);
+      color: var(--text);
+    }
+
+    .action-btn.delete:hover {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--priority-high);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-light);
+    }
+
+    .empty-state i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.3;
+    }
+
+    .empty-state p {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .empty-state small {
+      font-size: 0.9rem;
+    }
+
+    /* Add button in mobile view */
+    .form-submit {
+      grid-column: span 2;
+    }
+
+    @media (min-width: 640px) {
+      .form-submit {
+        grid-column: auto;
+      }
+    }
+
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-light);
+    }
+
+    .loading i {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ToDo - Manage your Daily tasks here</h1>
+  </header>
+
+  <div class="container">
+    <div class="form-container">
+      <form id="todo-form">
+        <div class="form-group">
+          <label for="id">ID</label>
+          <input type="number" id="id" required />
+        </div>
+        <div class="form-group">
+          <label for="todo">Task Description</label>
+          <input type="text" id="todo" placeholder="What needs to be done?" required />
+        </div>
+        <div class="form-group">
+          <label for="priority">Priority</label>
+          <select id="priority">
+            <option value="HIGH">High</option>
+            <option value="MEDIUM" selected>Medium</option>
+            <option value="LOW">Low</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="status">Status</label>
+          <select id="status">
+            <option value="TO DO" selected>To Do</option>
+            <option value="IN PROGRESS">In Progress</option>
+            <option value="DONE">Done</option>
+          </select>
+        </div>
+        <div class="form-group form-submit">
+          <label class="invisible">&nbsp;</label>
+          <button type="submit"><i class="fas fa-plus"></i> Add Task</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="todo-list" class="todo-grid">
+      <div class="loading">
+        <i class="fas fa-circle-notch fa-spin fa-2x"></i>
+        <p>Loading tasks...</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
