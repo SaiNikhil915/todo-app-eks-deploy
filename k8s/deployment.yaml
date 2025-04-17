@@ -22,9 +22,9 @@ spec:
     spec:
       containers:
         - name: f2p-backend
-          image: 
+          image: IMAGE_URI
           imagePullPolicy: Always
-          ports:image: IMAGE_URI
+          ports:
             - containerPort: 3000
           env:
             - name: MONGO_URI
@@ -57,3 +57,4 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
+      
