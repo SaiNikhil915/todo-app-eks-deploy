@@ -1,26 +1,47 @@
 version: 0.2
 
+env:
+  variables:
+    EKS_CLUSTER_NAME: todo-eks-cluster   # <-- replace with your actual cluster name
+    ECR_REGISTRY: 746413500084.dkr.ecr.us-east-1.amazonaws.com
+    REPO_NAME: todo-app-repo
+    AWS_DEFAULT_REGION: us-east-1
+
 phases:
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
       - aws --version
-      - $(aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $ECR_REGISTRY)
-      - REPO_NAME=todo-app-repo
+      - echo Logging in with credentials...
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
   build:
     commands:
       - echo Building Docker image...
       - docker build -t $ECR_REGISTRY/$REPO_NAME:$IMAGE_TAG .
+      - echo Pushing Docker image...
       - docker push $ECR_REGISTRY/$REPO_NAME:$IMAGE_TAG
   post_build:
     commands:
-      - echo Writing image definitions...
+      - echo Writing imagedefinitions.json for CodeDeploy...
       - printf '[{"name":"f2p-backend","imageUri":"%s"}]' $ECR_REGISTRY/$REPO_NAME:$IMAGE_TAG > imagedefinitions.json
-      - echo Deploying to EKS...
-      - aws eks update-kubeconfig --name your-eks-cluster-name --region us-east-1
-      - kubectl apply -f k8s/deployment.yaml
+      - echo Updating kubeconfig for EKS cluster...
+      - aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name $EKS_CLUSTER_NAME
+      - echo Deploying Kubernetes resources...
+      - sed "s|IMAGE_URI|$ECR_REGISTRY/$REPO_NAME:$IMAGE_TAG|g" k8s/deployment.yaml | kubectl apply -f -
       - kubectl apply -f k8s/service.yaml
+      - echo Waiting for LoadBalancer External IP...
+      - |
+        for i in {1..30}; do
+          EXTERNAL_IP=$(kubectl get svc f2p-backend -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+          if [[ -n "$EXTERNAL_IP" ]]; then
+            echo "Application is accessible at: http://$EXTERNAL_IP"
+            break
+          fi
+          echo "Waiting for external IP... ($i/30)"
+          sleep 10
+        done
 
 artifacts:
-  files: imagedefinitions.json
+  files:
+    - imagedefinitions.json

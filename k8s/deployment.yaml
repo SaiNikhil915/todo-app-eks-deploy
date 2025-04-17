@@ -22,11 +22,18 @@ spec:
     spec:
       containers:
         - name: f2p-backend
-          image: <your-ecr-repo-uri>:<your-tag>  # Replace this with your ECR image and tag
+          # This will get replaced by CodeBuild:
+          image: IMAGE_URI  
           imagePullPolicy: Always
-          envFrom:
-            - secretRef:
-                name: f2p-backend-secret
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              cpu: "150m"
+              memory: "300Mi"
+            limits:
+              cpu: "1000m"
+              memory: "2500Mi"
           startupProbe:
             tcpSocket:
               port: 3000
@@ -48,12 +55,3 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
-          ports:
-            - containerPort: 3000
-          resources:
-            limits:
-              memory: "2500Mi"
-              cpu: "1000m"
-            requests:
-              memory: "300Mi"
-              cpu: "150m"

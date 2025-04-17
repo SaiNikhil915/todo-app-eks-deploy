@@ -1,1 +1,3 @@
 .terraform/
+eks-terraform-project/terraform.tfvars
+eks-terraform-project/errored.tfstate
